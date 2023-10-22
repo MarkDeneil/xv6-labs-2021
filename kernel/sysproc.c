@@ -95,3 +95,16 @@ sys_uptime(void)
   release(&tickslock);
   return xticks;
 }
+
+uint64 sys_trace(void) {
+  // 通过下面这段代码 使用 argint 函数（在 kernel/syscall.c 中定义）从用户空间拿到 mask 变量（即 trace 系统调用的参数）的值
+  int mask;
+  if(argint(0, &mask) < 0) // 调用 argint 函数从进程的 trapframe 中获得 mask 参数
+    return -1;
+  
+
+  // printf("call sys_trace in sysproc.c.\n");
+  // printf("args from user space:%d\n", mask);
+  myproc()->syscall_trace_mask = mask;
+  return 0;
+}

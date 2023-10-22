@@ -23,6 +23,7 @@ int getpid(void);
 char* sbrk(int);
 int sleep(int);
 int uptime(void);
+int trace(int); // trace 接受一个 int 参数，表示 mask 变量
 
 // ulib.c
 int stat(const char*, struct stat*);

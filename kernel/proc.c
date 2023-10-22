@@ -141,6 +141,7 @@ found:
   p->context.ra = (uint64)forkret;
   p->context.sp = p->kstack + PGSIZE;
 
+  p->syscall_trace_mask = 0; // 初始化 syscall_trace_mask
   return p;
 }
 
