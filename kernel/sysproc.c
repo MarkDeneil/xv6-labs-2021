@@ -117,6 +117,8 @@ uint64 sys_trace(void) {
 uint64 sys_sysinfo(void) {
   uint64 sinfo; // user pointer to struct sysinfo
 
+  // 参考 sysfile.c 中 sys_fstat() 的实现,如何结合 argaddr 以及 copyout 来将一个内核中的结构体拷贝至用户空间
+  // 下面的 argaddr 函数获取 系统调用 sysinfo 的第一个参数：一个指向 struct sysinfo 的指针
   if(argaddr(0, &sinfo) < 0)
     return -1;
   
@@ -124,6 +126,8 @@ uint64 sys_sysinfo(void) {
   struct sysinfo info;
   info.nproc = count_nproc();
   info.freemem = count_freemem();
+  // 参考 sysfile.c 中 sys_fstat() 的实现
+  // 下面的 copyout 将内核中的 info 结构体拷贝至 sinfo 中，sinfo 是 sysinfo 系统调用的第一个参数：指向一个 sysinfo 结构体的指针
   if(copyout(p->pagetable, sinfo, (char *)&info, sizeof(info)) < 0)
       return -1;
   return 0;
