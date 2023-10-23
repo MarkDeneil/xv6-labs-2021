@@ -90,11 +90,12 @@ filestat(struct file *f, uint64 addr)
   struct proc *p = myproc();
   struct stat st;
   
+  // 填充内核态中 st 结构体的内容
   if(f->type == FD_INODE || f->type == FD_DEVICE){
     ilock(f->ip);
     stati(f->ip, &st);
     iunlock(f->ip);
-    // 将 内核态中文件的 stat 结构体的地址赋值给 用户空间的 指向 stat 结构体的指针
+    // 将 内核态中文件的 st 结构体的地址赋值给 用户空间的 指向 stat 结构体的指针
     // 见 kernel/sysfile.c 中的 sys_fstat 函数
     if(copyout(p->pagetable, addr, (char *)&st, sizeof(st)) < 0)
       return -1;
