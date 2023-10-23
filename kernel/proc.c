@@ -658,3 +658,16 @@ procdump(void)
     printf("\n");
   }
 }
+
+// 计算 sysinfo 中的 nproc
+// the nproc field should be set to the number of processes whose state is not UNUSED
+uint64 count_nproc() {
+  uint64 count = 0;
+  struct proc * p;
+  for (p = proc; p < &proc[NPROC]; ++p) {
+    if (p -> state != UNUSED)
+      ++count;
+  }
+  return count;
+
+}

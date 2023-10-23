@@ -7,6 +7,11 @@
 #include "spinlock.h"
 #include "proc.h"
 
+// 供 sys_sysinfo 系统调用使用
+#include "sysinfo.h"
+extern uint64 count_nproc();
+extern uint64 count_freemem();
+
 uint64
 sys_exit(void)
 {
@@ -106,5 +111,20 @@ uint64 sys_trace(void) {
   // printf("call sys_trace in sysproc.c.\n");
   // printf("args from user space:%d\n", mask);
   myproc()->syscall_trace_mask = mask;
+  return 0;
+}
+
+uint64 sys_sysinfo(void) {
+  uint64 sinfo; // user pointer to struct sysinfo
+
+  if(argaddr(0, &sinfo) < 0)
+    return -1;
+  
+  struct proc * p = myproc();
+  struct sysinfo info;
+  info.nproc = count_nproc();
+  info.freemem = count_freemem();
+  if(copyout(p->pagetable, sinfo, (char *)&info, sizeof(info)) < 0)
+      return -1;
   return 0;
 }

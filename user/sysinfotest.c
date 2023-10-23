@@ -3,7 +3,6 @@
 #include "kernel/sysinfo.h"
 #include "user/user.h"
 
-
 void
 sinfo(struct sysinfo *info) {
   if (sysinfo(info) < 0) {
@@ -129,4 +128,11 @@ main(int argc, char *argv[])
   testproc();
   printf("sysinfotest: OK\n");
   exit(0);
+
+  // 测试用代码
+  // struct sysinfo sinfo;
+  // sysinfo(&sinfo);
+  // printf("nproc : %d\n", sinfo.nproc);
+  // printf("freemem : %d\n", sinfo.freemem);
+  // exit(0);
 }

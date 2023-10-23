@@ -107,9 +107,12 @@ sys_close(void)
 uint64
 sys_fstat(void)
 {
+  // 该系统调用的作用是将内核态某个文件的 stat 结构体拷贝至用户态中，用户态调用该系统调用时使用一个
+  // 指向 struct stat 的指针作为参数
   struct file *f;
   uint64 st; // user pointer to struct stat
 
+  // 获取 用户空间系统调用 fstat(int fd, struct stat * st); 的两个参数
   if(argfd(0, 0, &f) < 0 || argaddr(1, &st) < 0)
     return -1;
   return filestat(f, st);

@@ -1,5 +1,6 @@
 struct stat;
 struct rtcdate;
+struct sysinfo; // sysinfo() 需要一个指向 struct sysinfo 的指针
 
 // system calls
 int fork(void);
@@ -24,6 +25,7 @@ char* sbrk(int);
 int sleep(int);
 int uptime(void);
 int trace(int); // trace 接受一个 int 参数，表示 mask 变量
+int sysinfo(struct sysinfo *);
 
 // ulib.c
 int stat(const char*, struct stat*);
