@@ -274,8 +274,8 @@ int
 fork(void)
 {
   int i, pid;
-  struct proc *np;
-  struct proc *p = myproc();
+  struct proc *np; // 子进程的结构体
+  struct proc *p = myproc(); // 当前进程的 proc 结构体
 
   // Allocate process.
   if((np = allocproc()) == 0){
@@ -289,6 +289,9 @@ fork(void)
     return -1;
   }
   np->sz = p->sz;
+
+  // 将父进程的 mask 拷贝至子进程，这样当子进程调用 系统调用时，自身 proc 结构体里的 mask 是可用的
+  np->syscall_trace_mask = p -> syscall_trace_mask;
 
   // copy saved user registers.
   *(np->trapframe) = *(p->trapframe);

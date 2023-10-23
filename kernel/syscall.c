@@ -165,7 +165,6 @@ syscall(void)
   num = p->trapframe->a7;
   if(num > 0 && num < NELEM(syscalls) && syscalls[num]) {
     p->trapframe->a0 = syscalls[num]();
-
     // 在 sys_trace 中将 proc 中的 sys_trace_mask 值设置号后，trace 的功能实际上在此实现。
     if (p->syscall_trace_mask & (1 << num)) {
       printf("%d: syscall %s -> %d\n", p->pid, syscall_names[num], p->trapframe->a0);
