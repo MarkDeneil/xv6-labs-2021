@@ -7,9 +7,15 @@
 #include "fs.h"
 
 /*
+vm.c 中，kvm 开头的函数用于操作内核页表，uvm 开头的函数用于操作用户页表
+其他函数同时用于两种页表
+*/
+
+/*
  * the kernel's page table.
  */
-pagetable_t kernel_pagetable;
+// 存放内核页表或进程页表的最高级目录的物理地址（即根目录的物理地址，SATP 寄存器中存放的值）
+pagetable_t kernel_pagetable; 
 
 extern char etext[];  // kernel.ld sets this to end of kernel code.
 
@@ -19,11 +25,23 @@ extern char trampoline[]; // trampoline.S
 pagetable_t
 kvmmake(void)
 {
+  /*
+  kvmmake
+  为内核 page table 做直接映射，内核中大部分内容都是直接映射的
+  （即虚拟地址映射到与虚拟地址相同的物理地址）
+  凡是内核地址 PHYSTOP（0x86400000)以下的地址都是直接映射的
+  见 教材图 3.3
+  最终返回内核页表最高级页目录的物理地址
+  */
   pagetable_t kpgtbl;
-
+  // 为最高一级的 页目录 分配一个物理 page，kalloc 函数用于分配物理 page，返回该物理page的地址
   kpgtbl = (pagetable_t) kalloc();
   memset(kpgtbl, 0, PGSIZE);
-
+  /*
+  kvmmap 函数用于将物理地址映射到虚拟地址，即在内核页表中添加表项
+  下面的语句将 虚拟地址 UART0 映射到物理地址 UART0，在教材 3.3 图
+  可以看到，PHYSTOP 以下的地址都是直接映射的，即虚拟地址映射到相同的物理地址
+  */
   // uart registers
   kvmmap(kpgtbl, UART0, UART0, PGSIZE, PTE_R | PTE_W);
 
@@ -61,6 +79,8 @@ kvminit(void)
 void
 kvminithart()
 {
+  // 设置 satp 寄存器，kernel_pagetable 是 kvminit() 函数中分配的
+  // 物理页（作为最高以及的页目录使用）的地址
   w_satp(MAKE_SATP(kernel_pagetable));
   sfence_vma();
 }
@@ -80,6 +100,8 @@ kvminithart()
 pte_t *
 walk(pagetable_t pagetable, uint64 va, int alloc)
 {
+  // walk 函数返回了虚拟地址 va 对应的最低一级的页表中的 PTE（一个 PTE 是用该 PTE 的起始地址表示的）
+  // walk 模拟了 MMU 的工作
   if(va >= MAXVA)
     panic("walk");
 
@@ -146,6 +168,9 @@ mappages(pagetable_t pagetable, uint64 va, uint64 size, uint64 pa, int perm)
   a = PGROUNDDOWN(va);
   last = PGROUNDDOWN(va + size - 1);
   for(;;){
+    // walk(pagetable, a, 1) 返回 虚拟地址 va 应该存放在的最低级
+    // 页表的页表项的物理地址，有了该地址后只需要向该页表项中填入 pa 对应的物理页号以及相应的 flag 位即可
+    // 一个页表项 PTE 右 保留位（53-63）+物理页号（10-53）+10位 flag 组成
     if((pte = walk(pagetable, a, 1)) == 0)
       return -1;
     if(*pte & PTE_V)
@@ -340,6 +365,13 @@ uvmclear(pagetable_t pagetable, uint64 va)
   *pte &= ~PTE_U;
 }
 
+
+/*
+copyout 将 data 拷贝至作为用户空间系统调用参数的虚拟地址
+总的思路就是将 目的虚拟地址 转化为 目的物理地址后，在两个物理地址
+之间传送数据
+*/
+
 // Copy from kernel to user.
 // Copy len bytes from src to virtual address dstva in a given page table.
 // Return 0 on success, -1 on error.
@@ -350,6 +382,7 @@ copyout(pagetable_t pagetable, uint64 dstva, char *src, uint64 len)
 
   while(len > 0){
     va0 = PGROUNDDOWN(dstva);
+    // walkaddr 返回 虚拟地址 va 对应的物理地址
     pa0 = walkaddr(pagetable, va0);
     if(pa0 == 0)
       return -1;
@@ -375,6 +408,7 @@ copyin(pagetable_t pagetable, char *dst, uint64 srcva, uint64 len)
 
   while(len > 0){
     va0 = PGROUNDDOWN(srcva);
+    // walkaddr 返回 虚拟地址 va 对应的物理地址
     pa0 = walkaddr(pagetable, va0);
     if(pa0 == 0)
       return -1;
