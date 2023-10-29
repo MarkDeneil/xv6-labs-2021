@@ -21,6 +21,11 @@ struct elfhdr {
   ushort shstrndx;
 };
 
+/*
+ELF 格式包含一个 ELF 头（elfhdr 结构体）和一些 ELF 节（proghdr 结构体）
+每个 proghdr 表示一个 ELF 节
+*/
+
 // Program section header
 struct proghdr {
   uint32 type;
