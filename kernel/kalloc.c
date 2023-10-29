@@ -14,6 +14,10 @@ void freerange(void *pa_start, void *pa_end);
 extern char end[]; // first address after kernel.
                    // defined by kernel.ld.
 
+/*
+空闲物理页用链表 freelist 表示，每个物理页的链表节点是 run 结构体
+将 run 结构体存储在 物理页自身 中，见 kfree 函数
+*/
 struct run {
   struct run *next;
 };
@@ -23,6 +27,10 @@ struct {
   struct run *freelist;
 } kmem;
 
+
+/*
+kinit 函数初始化分配器，并将空闲物理页用 run 结构体连接到 freelist 中
+*/
 void
 kinit()
 {
@@ -54,8 +62,14 @@ kfree(void *pa)
   // Fill with junk to catch dangling refs.
   memset(pa, 1, PGSIZE);
 
-  r = (struct run*)pa;
+  /*
+  将一个物理页对应的 struct run 存放在 物理页自身中
+  */
+  r = (struct run*)pa; 
 
+  /*
+  将该物理页加入 freelist 中
+  */
   acquire(&kmem.lock);
   r->next = kmem.freelist;
   kmem.freelist = r;
