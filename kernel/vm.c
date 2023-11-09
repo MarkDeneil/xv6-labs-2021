@@ -79,8 +79,12 @@ kvminit(void)
 void
 kvminithart()
 {
-  // 设置 satp 寄存器，kernel_pagetable 是 kvminit() 函数中分配的
-  // 物理页（作为最高以及的页目录使用）的地址
+  /*
+  
+  设置 satp 寄存器（页表基址寄存器），kernel_pagetable 是 kvminit() 函数中分配的
+  物理页（作为最高以及的页目录使用）的地址
+  设置完 satp 寄存器后，cpu 开始使用 虚拟地址
+  */
   w_satp(MAKE_SATP(kernel_pagetable));
   sfence_vma();
 }
