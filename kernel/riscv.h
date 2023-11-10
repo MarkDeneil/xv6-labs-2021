@@ -347,6 +347,11 @@ sfence_vma()
 // shift a physical address to the right place for a PTE.
 #define PA2PTE(pa) ((((uint64)pa) >> 12) << 10)
 
+/*
+ 一个页表项 PTE 中保存着 64 位，其中低 10 位（0-9）是 flag，10-53 位是 PPN 物理页号
+右移 10 位将 flag 去掉
+左移 12 位是获得 PPN 对应的物理地址（一页是 2^12 byte）
+*/
 #define PTE2PA(pte) (((pte) >> 10) << 12)
 
 #define PTE_FLAGS(pte) ((pte) & 0x3FF)
